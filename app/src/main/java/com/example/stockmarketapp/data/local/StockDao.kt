@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 //Data Access Objects
-//main classes where you define your database interactions
+//here you define your database interactions
 //they can include a variety of query methods
 @Dao
 interface StockDao {
@@ -18,11 +18,12 @@ interface StockDao {
     @Query("DELETE FROM companylistingentity")
     suspend fun clearCompanyListings()
 
-    //search for symbol or if it contains query in the name
+    //search for symbol or query in the name (:query means query is the parameter)
+    //|| is for concatenation
     @Query("""
         SELECT *
         FROM companylistingentity
-        WHERE LOWER(name) LIKE '%' || LOWER(:query) || '%' OR
+        WHERE LOWER(name) LIKE '%' || LOWER(:query) || '%' OR 
             UPPER(:query) == symbol
     """)
     suspend fun searchCompanyListing(query: String): List<CompanyListingEntity>
