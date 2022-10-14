@@ -8,5 +8,6 @@ data class CompanyListingEntity(
     val name: String,
     val symbol: String,
     val exchange: String,
+    val status: String,
     @PrimaryKey val id: Int? = null //Room will automatically generate id for us
 )

@@ -1,5 +1,6 @@
 package com.example.stockmarketapp.data.repository
 
+import android.util.Log
 import com.example.stockmarketapp.data.csv.CSVParser
 import com.example.stockmarketapp.data.local.StockDatabase
 import com.example.stockmarketapp.data.mapper.toCompanyListing
@@ -17,23 +18,24 @@ import javax.inject.Singleton
 
 @Singleton //we only want one instance of this
 class StockRepositoryImpl @Inject constructor(
-    val api: StockApi,
-    val db: StockDatabase,
-    val companyListingsParser: CSVParser<CompanyListing> //we want depend on an abstraction (interface in this case)
+    private val api: StockApi,
+    private val db: StockDatabase,
+    private val companyListingsParser: CSVParser<CompanyListing> //we want depend on an abstraction (interface in this case)
 ): StockRepository {
 
     private val dao = db.dao
 
     override suspend fun getCompanyListings(
         fetchFromRemote: Boolean,
-        query: String
+        query: String,
+        status: String
     ): Flow<Resource<List<CompanyListing>>> {
         return flow {
             //emits value we pass (later, we will catch these values in viewmodel)
             //we need to emit value of type Resource<List<CompanyListing>>
-            emit(Resource.Loading(true)) //loading is true, first we want to show progress bar in the UI
+            emit(Resource.Loading(true)) //loading is true - first we want to show progress bar in the UI
             //then we want to execute query for getting companies from the database
-            val localListings = dao.searchCompanyListing(query) //we need to transform localListings (list of entities) to domain level models
+            val localListings = dao.searchCompanyListing(query, status)
             emit(Resource.Success(
                 data = localListings.map { it.toCompanyListing() } //we map each entity to model
             ))
@@ -48,8 +50,10 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Loading(false)) //nothing is loading anymore, we can stop showing progress bar
                 return@flow
             }
+            //if user swipe for refresh or if db is empty
             val remoteListings = try {
-                val response = api.getListings()
+                val statusForApi = if (status == "Delisted") "delisted" else "active"
+                val response = api.getListings(state = statusForApi)
                 companyListingsParser.parse(response.byteStream())
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -64,11 +68,11 @@ class StockRepositoryImpl @Inject constructor(
             //when we catch data from an api, we want to insert it into our cache
             remoteListings?.let { listings ->
                 //data should always come from the cache to the UI (not from an api)
-                dao.clearCompanyListings() //to clear the cache
+                dao.clearCompanyListings(status) //to clear the cache
                 dao.insertCompanyListings(listings.map { it.toCompanyListingEntity() }) //insert new listings in the db
                 emit(Resource.Success(
                     data = dao
-                        .searchCompanyListing("")
+                        .searchCompanyListing("", status)
                         .map { it.toCompanyListing() }
                 ))
                 emit(Resource.Loading(false))

@@ -8,7 +8,8 @@ fun CompanyListingEntity.toCompanyListing(): CompanyListing {
     return CompanyListing(
         name = name,
         symbol = symbol,
-        exchange = exchange
+        exchange = exchange,
+        status = status
     )
 }
 
@@ -17,7 +18,8 @@ fun CompanyListing.toCompanyListingEntity(): CompanyListingEntity {
     return CompanyListingEntity(
         name = name,
         symbol = symbol,
-        exchange = exchange
+        exchange = exchange,
+        status = status
         //id will automatically be generated
     )
 }

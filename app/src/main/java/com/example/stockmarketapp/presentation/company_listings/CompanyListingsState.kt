@@ -6,8 +6,9 @@ import com.example.stockmarketapp.domain.model.CompanyListing
 data class CompanyListingsState(
     val companies: List<CompanyListing> = emptyList(),
     val isLoading: Boolean = false, //for progress bar
-    val isRefreshing: Boolean = false,
-    val searchQuery: String = ""
+    val isRefreshing: Boolean = false, //for api call
+    val searchQuery: String = "",
+    val status: String = "Active"
 )
 
 
