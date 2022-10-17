@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.time.LocalDateTime
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +24,7 @@ class IntradayInfoParser @Inject constructor(): CSVParser<IntradayInfo> {
                 .readAll() //read all return list of array of string (each row in csv is array of string and we have list of these arrays)
                 .drop(1) //we don't need first row, it contains column names
                 .mapNotNull { line ->
-                    val timestamp = line.getOrNull(0) ?: return@mapNotNull null//returns null if fields doesn't exist
+                    val timestamp = line.getOrNull(0) ?: return@mapNotNull null //returns null if fields doesn't exist
                     val close = line.getOrNull(4) ?: return@mapNotNull null
                     val dto = IntradayInfoDto(timestamp, close.toDouble())
                     dto.toIntradayInfo()
@@ -32,7 +32,7 @@ class IntradayInfoParser @Inject constructor(): CSVParser<IntradayInfo> {
                 //ascending order by hours and filtering (to show only timestamps from the last day)
                 .filter {
                     //taking yesterdays info only
-                    it.date.dayOfMonth == LocalDateTime.now().minusDays(1).dayOfMonth
+                    it.date.dayOfMonth == LocalDate.now().minusDays(4).dayOfMonth
                 }
                 .sortedBy {
                     it.date.hour

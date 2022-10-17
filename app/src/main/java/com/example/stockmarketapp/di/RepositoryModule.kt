@@ -5,6 +5,7 @@ import com.example.stockmarketapp.data.csv.CompanyListingsParser
 import com.example.stockmarketapp.data.csv.IntradayInfoParser
 import com.example.stockmarketapp.data.repository.StockRepositoryImpl
 import com.example.stockmarketapp.domain.model.CompanyListing
+import com.example.stockmarketapp.domain.model.IntradayInfo
 import com.example.stockmarketapp.domain.repository.StockRepository
 import dagger.Binds
 import dagger.Module
@@ -25,14 +26,14 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindIntradayInfoParser(
+        intradayInfoParser: IntradayInfoParser
+    ): CSVParser<IntradayInfo>
+
+    @Binds
+    @Singleton
     //takes the implementation and returns abstraction
     abstract fun bindStockRepository(
         stockRepositoryImpl: StockRepositoryImpl
     ): StockRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindIntradayInfoParser(
-        intradayInfoParser: IntradayInfoParser
-    ): CSVParser<IntradayInfoParser>
 }

@@ -25,7 +25,7 @@ class CompanyInfoViewModel @Inject constructor(
         viewModelScope.launch {
             val symbol = savedStateHandle.get<String>("symbol") ?: return@launch
             state = state.copy(isLoading = true)
-            //it is best to call these api simultaneously
+            //it is best to call these api simultaneously (it is faster)
             val companyInfoResult = async { repository.getCompanyInfo(symbol) } //network call
             val intradayInfoResult = async { repository.getIntradayInfo(symbol) } //network call
 

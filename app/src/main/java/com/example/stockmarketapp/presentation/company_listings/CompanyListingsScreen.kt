@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.stockmarketapp.presentation.destinations.CompanyInfoScreenDestination
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ramcosta.composedestinations.annotation.Destination
@@ -96,12 +97,17 @@ fun CompanyListingsScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(state.companies.size) { index ->
+                    val company = state.companies[index]
                     CompanyItem(
-                        company = state.companies[index],
+                        company = company,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
+                                if (company.status == "Delisted") return@clickable
                                 //navigate to detail screen
+                                navigator.navigate(
+                                    CompanyInfoScreenDestination(company.symbol)
+                                )
                             }
                             .padding(16.dp)
                     )
