@@ -9,8 +9,7 @@ data class CompanyListingsState(
     val isRefreshing: Boolean = false, //for api call
     val searchQuery: String = "",
     val status: String = "Active",
-    val error: String? = null,
-    val assetType: String = "" //Stock, ETF
+    val error: String? = null
 )
 
 
