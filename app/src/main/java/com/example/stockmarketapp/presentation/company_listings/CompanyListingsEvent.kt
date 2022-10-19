@@ -5,4 +5,5 @@ sealed class CompanyListingsEvent {
     object Refresh: CompanyListingsEvent()
     data class OnSearchQueryChange(val query: String): CompanyListingsEvent()
     data class OnRadioButtonChange(val status: String): CompanyListingsEvent()
+    data class OnCheckBoxChange(val assetType: String): CompanyListingsEvent()
 }

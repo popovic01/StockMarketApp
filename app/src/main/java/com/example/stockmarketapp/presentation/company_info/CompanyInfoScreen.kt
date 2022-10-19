@@ -1,34 +1,36 @@
 package com.example.stockmarketapp.presentation.company_info
 
-import android.app.DatePickerDialog
-import android.util.Log
-import android.widget.DatePicker
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.stockmarketapp.ui.theme.Pink
+import com.example.stockmarketapp.ui.theme.Blue
 import com.example.stockmarketapp.ui.theme.Purple
+import com.example.stockmarketapp.ui.theme.TextWhite
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ramcosta.composedestinations.annotation.Destination
-import java.time.LocalDateTime
-import java.util.*
 
 @Composable
 @Destination
@@ -94,6 +96,8 @@ fun CompanyInfoScreen(
                         fontSize = 12.sp,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Address(address = company.address)
                     //if we have entries in the intraday info list, we want to show the stock chart
                     if (state.stockInfos.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(16.dp))
@@ -136,4 +140,48 @@ fun CompanyInfoScreen(
           )
       }
   }
+}
+
+@Composable
+fun Address(address: String) {
+    //creating an annotated string
+    val annotatedLinkString = buildAnnotatedString {
+
+        //creating a string to display in the Text
+        val str = "Address: $address - click here to see location"
+
+        val startIndex = str.indexOf("click")
+        val endIndex = startIndex + 26
+
+        append(str)
+        addStyle(
+            style = SpanStyle(
+                color = Color(0xffDFD8D6)
+            ), start = 0, end = startIndex
+        )
+        addStyle(
+            style = SpanStyle(
+                color = Blue,
+                textDecoration = TextDecoration.Underline
+            ), start = startIndex, end = endIndex
+        )
+    }
+
+    val navigationIntentUri: Uri = Uri.parse("geo:0,0?q=$address")
+    val mapIntent = Intent(Intent.ACTION_VIEW, navigationIntentUri)
+    mapIntent.setPackage("com.google.android.apps.maps") //to use google maps
+    val context = LocalContext.current
+
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ClickableText(
+            text = annotatedLinkString,
+            onClick = {
+                startActivity(context, mapIntent, null)
+            }
+        )
+    }
 }

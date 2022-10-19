@@ -10,5 +10,6 @@ data class CompanyInfoEntity(
     val industry: String,
     val country: String,
     val description: String,
+    val address: String,
     @PrimaryKey val id: Int? = null
 )

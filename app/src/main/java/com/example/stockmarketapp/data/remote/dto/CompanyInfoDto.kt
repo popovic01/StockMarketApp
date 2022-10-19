@@ -13,5 +13,7 @@ data class CompanyInfoDto(
     @field:Json(name = "Country")
     val country: String?,
     @field:Json(name = "Industry")
-    val industry: String?
+    val industry: String?,
+    @field:Json(name = "Address")
+    val address: String?
 )

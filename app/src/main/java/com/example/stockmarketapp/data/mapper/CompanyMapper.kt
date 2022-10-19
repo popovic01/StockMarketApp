@@ -38,7 +38,8 @@ fun CompanyInfoDto.toCompanyInfo(): CompanyInfo {
         description = description ?: "",
         name = name ?: "",
         country = country ?: "",
-        industry = industry ?: ""
+        industry = industry ?: "",
+        address = address ?: ""
     )
 }
 
@@ -48,7 +49,8 @@ fun CompanyInfoEntity.toCompanyInfo(): CompanyInfo {
         description = description,
         name = name,
         country = country,
-        industry = industry
+        industry = industry,
+        address = address
     )
 }
 
@@ -58,7 +60,8 @@ fun CompanyInfo.toCompanyInfoEntity(): CompanyInfoEntity {
         name = name,
         industry = industry,
         country = country,
-        description = description
+        description = description,
+        address = address
     )
 }
 

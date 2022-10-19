@@ -48,7 +48,7 @@ class CompanyListingsViewModel @Inject constructor(
             }
             is CompanyListingsEvent.OnRadioButtonChange -> {
                 state = state.copy(status = event.status)
-                getCompanyListings(status = state.status)
+                getCompanyListings(status = state.status, query = state.searchQuery)
             }
         }
     }
