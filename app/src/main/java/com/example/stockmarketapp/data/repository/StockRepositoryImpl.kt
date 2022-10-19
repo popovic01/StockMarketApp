@@ -3,9 +3,7 @@ package com.example.stockmarketapp.data.repository
 import android.util.Log
 import com.example.stockmarketapp.data.csv.CSVParser
 import com.example.stockmarketapp.data.local.StockDatabase
-import com.example.stockmarketapp.data.mapper.toCompanyInfo
-import com.example.stockmarketapp.data.mapper.toCompanyListing
-import com.example.stockmarketapp.data.mapper.toCompanyListingEntity
+import com.example.stockmarketapp.data.mapper.*
 import com.example.stockmarketapp.data.remote.StockApi
 import com.example.stockmarketapp.domain.model.CompanyInfo
 import com.example.stockmarketapp.domain.model.CompanyListing
@@ -54,6 +52,7 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Loading(false)) //nothing is loading anymore, we can stop showing progress bar
                 return@flow
             }
+            emit(Resource.Success(emptyList())) //to show nothing while waiting for result from the api call
             //if user swipe for refresh or if db is empty
             val remoteListings = try {
                 val statusForApi = if (status == "Delisted") "delisted" else "active"
@@ -68,7 +67,6 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Error("Couldn't load data"))
                 null
             }
-
             //when we catch data from an api, we want to insert it into our cache
             remoteListings?.let { listings ->
                 //data should always come from the cache to the UI (not from an api)
@@ -84,30 +82,94 @@ class StockRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getIntradayInfo(symbol: String): Resource<List<IntradayInfo>> {
-        return try {
-            val response = api.getIntradayInfo(symbol)
-            val results = intradayInfoParser.parse(response.byteStream())
-            Resource.Success(results)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Resource.Error(message = "Couldn't load intra day info")
-        } catch (e: HttpException) {
-            e.printStackTrace()
-            Resource.Error(message = "Couldn't load intra day info")
+    override suspend fun getCompanyInfo(fetchFromRemote: Boolean, symbol: String): Flow<Resource<CompanyInfo>> {
+        return flow {
+            emit(Resource.Loading(isLoading = true))
+            val localCompanyInfo = dao.getCompanyInfo(symbol)
+            emit(Resource.Success(
+                data = localCompanyInfo?.toCompanyInfo()
+            ))
+
+            val isCompanyInfoNull = localCompanyInfo == null
+            val shouldJustLoadFromCache = !isCompanyInfoNull && !fetchFromRemote
+            if (shouldJustLoadFromCache) {
+                emit(Resource.Loading(isLoading = false))
+                return@flow
+            }
+            val remoteCompanyInfo = try {
+                api.getCompanyInfo(symbol).toCompanyInfo()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Couldn't load company info"))
+                null
+            } catch (e: HttpException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Couldn't load company info"))
+                null
+            }
+
+            remoteCompanyInfo?.let { companyInfo ->
+                if (companyInfo.symbol.isEmpty()) {
+                    emit(Resource.Error(message = "No info for this company"))
+                    return@let
+                }
+                dao.clearCompanyInfo(symbol)
+                dao.insertCompanyInfo(companyInfo.toCompanyInfoEntity())
+                emit(Resource.Success(
+                    data = dao.getCompanyInfo(symbol)?.toCompanyInfo()
+                ))
+                emit(Resource.Loading(false))
+            }
         }
     }
 
-    override suspend fun getCompanyInfo(symbol: String): Resource<CompanyInfo> {
-        return try {
-            val result = api.getCompanyInfo(symbol).toCompanyInfo()
-            Resource.Success(result)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Resource.Error(message = "Couldn't load company info")
-        } catch (e: HttpException) {
-            e.printStackTrace()
-            Resource.Error(message = "Couldn't load company info")
+    override suspend fun getIntradayInfo(fetchFromRemote: Boolean, symbol: String): Flow<Resource<List<IntradayInfo>>> {
+        return flow {
+            emit(Resource.Loading(isLoading = true))
+            val localIntradayInfos = dao.getIntradayInfos(symbol)
+            emit(Resource.Success(
+                data = localIntradayInfos.map { it.toIntradayInfo() }
+            ))
+
+            val isIntradayInfosEmpty = localIntradayInfos.isEmpty()
+            val shouldJustLoadFromCache = !isIntradayInfosEmpty && !fetchFromRemote
+            if (shouldJustLoadFromCache) {
+                emit(Resource.Loading(false))
+                return@flow
+            }
+            val remoteIntradayInfos = try {
+                val response = api.getIntradayInfo(symbol)
+                intradayInfoParser.parse(response.byteStream())
+            } catch (e: IOException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Couldn't load intra day info"))
+                null
+            } catch (e: HttpException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Couldn't load intra day info"))
+                null
+            }
+
+            remoteIntradayInfos?.let { infos ->
+                if (infos.isEmpty()) {
+                    emit(Resource.Error(
+                        message = "No intra day info for this company"
+                    ))
+                    return@let
+                }
+                dao.clearIntradayInfos(symbol)
+                val companyId = dao.getCompanyInfo(symbol)?.id ?: 0
+                dao.insertIntradayInfo(
+                    infos.map { it.toIntradayInfoEntity(companyId) }
+                )
+                emit(Resource.Success(
+                    data = dao
+                        .getIntradayInfos(symbol)
+                        .map { it.toIntradayInfo() }
+                ))
+                emit(Resource.Loading(false))
+            }
         }
     }
+
 }

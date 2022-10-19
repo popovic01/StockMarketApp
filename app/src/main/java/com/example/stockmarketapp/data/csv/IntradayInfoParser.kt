@@ -31,8 +31,8 @@ class IntradayInfoParser @Inject constructor(): CSVParser<IntradayInfo> {
                 }
                 //ascending order by hours and filtering (to show only timestamps from the last day)
                 .filter {
-                    //taking yesterdays info only
-                    it.date.dayOfMonth == LocalDate.now().minusDays(4).dayOfMonth
+                    //taking yesterdays info only (doesn't work if today is monday or sunday - there is no stock info for weekends)
+                    it.date.dayOfMonth == LocalDate.now().minusDays(1).dayOfMonth
                 }
                 .sortedBy {
                     it.date.hour

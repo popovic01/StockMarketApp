@@ -5,6 +5,7 @@ import com.example.stockmarketapp.domain.model.CompanyListing
 import com.example.stockmarketapp.domain.model.IntradayInfo
 import com.example.stockmarketapp.util.Resource
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 interface StockRepository {
 
@@ -14,7 +15,7 @@ interface StockRepository {
         fetchFromRemote: Boolean, query: String, status: String
     ): Flow<Resource<List<CompanyListing>>>
 
-    suspend fun getIntradayInfo(symbol: String): Resource<List<IntradayInfo>>
+    suspend fun getIntradayInfo(fetchFromRemote: Boolean, symbol: String): Flow<Resource<List<IntradayInfo>>>
 
-    suspend fun getCompanyInfo(symbol: String): Resource<CompanyInfo>
+    suspend fun getCompanyInfo(fetchFromRemote: Boolean, symbol: String): Flow<Resource<CompanyInfo>>
 }

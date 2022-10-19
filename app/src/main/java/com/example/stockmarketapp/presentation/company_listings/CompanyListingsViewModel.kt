@@ -72,9 +72,11 @@ class CompanyListingsViewModel @Inject constructor(
                                 )
                             }
                         }
-                        is Resource.Error -> Unit
+                        is Resource.Error -> {
+                            state = state.copy(error = result.message, isLoading = false)
+                        }
                         is Resource.Loading -> {
-                            state = state.copy(isLoading = result.isLoading) //we just change isLoading, other values are same
+                            state = state.copy(isLoading = result.isLoading, error = null) //we just change isLoading, other values are same
                         }
                     }
                 }

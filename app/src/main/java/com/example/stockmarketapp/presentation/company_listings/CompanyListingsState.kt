@@ -8,7 +8,8 @@ data class CompanyListingsState(
     val isLoading: Boolean = false, //for progress bar
     val isRefreshing: Boolean = false, //for api call
     val searchQuery: String = "",
-    val status: String = "Active"
+    val status: String = "Active",
+    val error: String? = null
 )
 
 

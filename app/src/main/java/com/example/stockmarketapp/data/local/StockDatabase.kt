@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     //list of tables in the db
-    entities = [CompanyListingEntity::class],
+    entities = [CompanyListingEntity::class, CompanyInfoEntity::class, IntradayInfoEntity::class],
     version = 1
 )
 abstract class StockDatabase: RoomDatabase() {

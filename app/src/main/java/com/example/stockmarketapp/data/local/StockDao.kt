@@ -1,9 +1,7 @@
 package com.example.stockmarketapp.data.local
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
+import androidx.room.OnConflictStrategy.REPLACE
 
 //Data Access Objects
 //here you define your database interactions
@@ -12,7 +10,7 @@ import androidx.room.Query
 interface StockDao {
 
     //when we get companies from an api we want to insert it into our local database
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = REPLACE)
     suspend fun insertCompanyListings(companyListingEntities: List<CompanyListingEntity>)
 
     @Query("DELETE FROM companylistingentity WHERE status = :status")
@@ -27,4 +25,22 @@ interface StockDao {
             UPPER(:query) == symbol) AND status = :status
     """)
     suspend fun searchCompanyListing(query: String, status: String): List<CompanyListingEntity>
+
+    @Query("DELETE FROM companyinfoentity WHERE symbol = :symbol")
+    suspend fun clearCompanyInfo(symbol: String)
+
+    @Query("DELETE FROM intradayinfoentity WHERE companyId IN (SELECT id FROM companyinfoentity where symbol = :symbol)")
+    suspend fun clearIntradayInfos(symbol: String)
+
+    @Insert(onConflict = REPLACE)
+    suspend fun insertCompanyInfo(companyInfoEntity: CompanyInfoEntity)
+
+    @Insert(onConflict = REPLACE)
+    suspend fun insertIntradayInfo(intradayInfoEntity: List<IntradayInfoEntity>)
+
+    @Query("SELECT * FROM companyinfoentity WHERE symbol = :symbol")
+    suspend fun getCompanyInfo(symbol: String): CompanyInfoEntity?
+
+    @Query("SELECT * FROM intradayinfoentity WHERE companyId IN (SELECT id FROM companyinfoentity where symbol = :symbol)")
+    suspend fun getIntradayInfos(symbol: String): List<IntradayInfoEntity>
 }
